@@ -1,65 +1,35 @@
-const int Temp = A0;      
-const int sound = 11;       
-const int motion = 8;       
-const int intTemp = 2;      
-const int intMotion = 3;    
+int led1 = 11;
+int led2 = 12;
+const int motionSensor1 = 2; 
+const int motionSensor2 = 3;
 
-volatile bool motionDetected = false;  
-volatile bool tempRising = false;      
+uint8_t motionState1 = 0;
+uint8_t motionState2 = 0;
 
-void setup() {
-  pinMode(intTemp, INPUT_PULLUP);
-  pinMode(intMotion, INPUT_PULLUP);
-  pinMode(4, OUTPUT);
-  pinMode(Temp, INPUT);     
-  pinMode(sound, OUTPUT);    
-  pinMode(LED_BUILTIN, OUTPUT);   
-
-  attachInterrupt(digitalPinToInterrupt(intTemp), tempInterrupt, RISING);
-  attachInterrupt(digitalPinToInterrupt(intMotion), motionInterrupt, RISING);
-
-  Serial.begin(9600);          
-}
-
-void loop() {
+void setup() { 
+  pinMode(led1,OUTPUT);
+  pinMode(led2,OUTPUT);
+  pinMode(motionSensor2, INPUT_PULLUP);
+  pinMode(motionSensor1, INPUT_PULLUP);    
   
-
-  checkTemperature();  
-
-  if (tempRising) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    Serial.println("LED turned ON due to temperature rise");
-    tempRising = false;  
-  } else {
-    digitalWrite(LED_BUILTIN, LOW);
-    Serial.println("LED turned OFF");
-  }
-
-  if (motionDetected) {
-    tone(sound, 1000);  
-    Serial.println("Motion detected - Sound ON");
-    delay(2000);          
-    noTone(sound);   
-    motionDetected = false; 
-  }
+  Serial.begin(9600);
+  
+  attachInterrupt(digitalPinToInterrupt(motionSensor1), motion1, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(motionSensor2), motion2, CHANGE);
 }
 
-void tempInterrupt() {
-  tempRising = true;  
+void loop(){
+  digitalWrite(led1, motionState1);
+  digitalWrite(led2, motionState2);
+  delay(500);
 }
 
-void motionInterrupt() {
-  motionDetected = true;  
+void motion1(){
+  motionState1 = !motionState1;
+  Serial.println("Motion 1 interrupted!");
 }
 
-void checkTemperature() {
-  int TempValue = analogRead(Temp);
-  float voltage = TempValue * (5.0 / 1023.0);
-  float temperatureCelsius = (voltage - 0.5) * 100.0;
-
-  if (temperatureCelsius > 50) {
-    tempRising = true;
-  } else {
-    tempRising = false;
-  }
+void motion2(){
+  motionState2 = !motionState2;
+  Serial.println("Motion 2 interrupted!");
 }
